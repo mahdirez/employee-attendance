@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { validationLogin } from "../services/AuthServices";
 
 interface LoginFormFields {
   email: string;
@@ -18,6 +19,7 @@ const LoginForm: React.FC = () => {
   });
   const [formErrors, setFormErrors] = useState<LoginFormErrors>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [loginError, setLoginError] = useState<string>("");
 
   // Email validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -50,12 +52,20 @@ const LoginForm: React.FC = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitted(true);
-
+    setLoginError("");
     if (validateForm()) {
-      console.log("form value", formValues);
+      try {
+        const user = await validationLogin(
+          formValues.email,
+          formValues.password
+        );
+        console.log("Logged in user:", user);
+      } catch (err) {
+        setLoginError("The username or password is not correct");
+      }
     }
   };
   return (
@@ -119,6 +129,11 @@ const LoginForm: React.FC = () => {
             </button>
           </div>
         </form>
+        {loginError && (
+          <p className="text-red-600 text-center">
+            The username or password is not correct
+          </p>
+        )}
       </div>
     </div>
   );
